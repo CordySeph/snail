@@ -1,0 +1,7 @@
+
+root = "."
+tmp_dir = "tmp"
+cmd = "go run main.go"
+watch = ["."]
+exclude_dir = ["tmp", "vendor"]
+exclude_file = ["*.md", "*.toml"]
