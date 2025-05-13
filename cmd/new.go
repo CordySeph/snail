@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"text/template"
 
 	"github.com/spf13/cobra"
 )
@@ -55,39 +54,16 @@ func createProject(name string) {
 		}
 	}
 
-	writeTemplate(filepath.Join(name, "main.go"), mainGoTemplate, name)
-	writeTemplate(filepath.Join(name, "go.mod"), goModTemplate, name)
-	writeTemplate(filepath.Join(name, "config/config.go"), configTemplate, name)
-	writeTemplate(filepath.Join(name, "internal/logger/logger.go"), loggerTemplate, name)
-	writeTemplate(filepath.Join(name, "internal/server/server.go"), serverTemplate, name)
+	writeProjectTemplate(filepath.Join(name, "main.go"), mainGoTemplate, name)
+	writeProjectTemplate(filepath.Join(name, "go.mod"), goModTemplate, name)
+	writeProjectTemplate(filepath.Join(name, "config/config.go"), configTemplate, name)
+	writeProjectTemplate(filepath.Join(name, "internal/logger/logger.go"), loggerTemplate, name)
+	writeProjectTemplate(filepath.Join(name, "internal/server/server.go"), serverTemplate, name)
 	writeFile(filepath.Join(name, ".env"), "")
 	writeFile(filepath.Join(name, ".air.toml"), airTomlContent)
 	writeFile(filepath.Join(name, ".gitignore"), gitignoreContent)
 
 	fmt.Printf("✅ Project '%s' created successfully!\n", name)
-}
-
-func writeTemplate(path, tmplContent, name string) {
-	tmpl := template.Must(template.New("").Parse(tmplContent))
-	f, err := os.Create(path)
-	if err != nil {
-		fmt.Println("❌ Failed to create file:", path)
-		return
-	}
-	defer f.Close()
-	if err := tmpl.Execute(f, struct{ ProjectName string }{ProjectName: name}); err != nil {
-		fmt.Println("❌ Failed to write template:", path, err)
-	}
-}
-
-func writeFile(path, content string) {
-	f, err := os.Create(path)
-	if err != nil {
-		fmt.Println("❌ Failed to create file:", path)
-		return
-	}
-	defer f.Close()
-	f.WriteString(content)
 }
 
 var gitignoreContent = `

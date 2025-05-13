@@ -4,22 +4,22 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	// "strings"
 
 	"github.com/spf13/cobra"
 )
 
 var generateCmd = &cobra.Command{
 	Use:   "generate module [name]",
-	Short: "Generate a new module (handler, service, routes)",
+	Short: "Generate a new module with handler, service, and route",
 	Args:  cobra.ExactArgs(2),
 	Run: func(cmd *cobra.Command, args []string) {
-		if args[0] != "module" {
-			fmt.Println("Usage: snail generate module <name>")
-			return
+		entity, name := args[0], args[1]
+		switch entity {
+		case "module":
+			generateModule(name)
+		default:
+			fmt.Printf("❌ Unsupported entity: %s\n", entity)
 		}
-		name := args[1]
-		generateModule(name)
 	},
 }
 
@@ -28,19 +28,50 @@ func init() {
 }
 
 func generateModule(name string) {
-	base := filepath.Join("modules", name)
-	os.MkdirAll(base, 0755)
-
-	files := map[string]string{
-		"handler.go": fmt.Sprintf("package %s\n\n// Handler for %s module", name, name),
-		"service.go": fmt.Sprintf("package %s\n\n// Service for %s module", name, name),
-		"routes.go":  fmt.Sprintf("package %s\n\n// Routes for %s module", name, name),
-		"model.go":   fmt.Sprintf("package %s\n\n// Model for %s module", name, name),
+	modulePath := filepath.Join("modules", name)
+	if err := os.MkdirAll(modulePath, 0755); err != nil {
+		fmt.Println("❌ Failed to create module directory:", err)
+		return
 	}
 
-	for filename, content := range files {
-		path := filepath.Join(base, filename)
-		os.WriteFile(path, []byte(content), 0644)
+	writeModuleTemplate(filepath.Join(modulePath, "handler.go"), handlerTemplate, name)
+	writeModuleTemplate(filepath.Join(modulePath, "service.go"), serviceTemplate, name)
+	writeModuleTemplate(filepath.Join(modulePath, "route.go"), routeTemplate, name)
+
+	fmt.Printf("✅ Module '%s' generated successfully!\n", name)
+}
+
+var handlerTemplate = `package {{.}}
+
+import "github.com/gofiber/fiber/v2"
+
+func Get{{title .}}(c *fiber.Ctx) error {
+	return c.JSON(fiber.Map{
+		"message": "GET {{.}}",
+	})
+}
+`
+
+var serviceTemplate = `package {{.}}
+
+func Get{{title .}}Data() string {
+	return "data from {{.}} service"
+}
+`
+
+var routeTemplate = `package {{.}}
+
+import "github.com/gofiber/fiber/v2"
+
+func RegisterRoutes(app *fiber.App) {
+	r := app.Group("/{{.}}")
+	r.Get("/", Get{{title .}})
+}
+`
+
+func upperFirst(s string) string {
+	if len(s) == 0 {
+		return s
 	}
-	fmt.Printf("✅ Created module: %s\n", name)
+	return string(s[0]-32) + s[1:]
 }
