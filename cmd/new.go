@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/AlecAivazis/survey/v2"
 	"github.com/spf13/cobra"
 )
 
@@ -41,6 +42,17 @@ func init() {
 }
 
 func createProject(name string) {
+	dbType := ""
+	prompt := &survey.Select{
+		Message: "Choose a database:",
+		Options: []string{"PostgreSQL", "MySQL", "SQLite", "MongoDB"},
+		Default: "PostgreSQL",
+	}
+
+	survey.AskOne(prompt, &dbType)
+
+	envContent := generateEnvContent(dbType)
+
 	paths := []string{
 		filepath.Join(name, "modules"),
 		filepath.Join(name, "config"),
@@ -59,11 +71,26 @@ func createProject(name string) {
 	writeProjectTemplate(filepath.Join(name, "config/config.go"), configTemplate, name)
 	writeProjectTemplate(filepath.Join(name, "internal/logger/logger.go"), loggerTemplate, name)
 	writeProjectTemplate(filepath.Join(name, "internal/server/server.go"), serverTemplate, name)
-	writeFile(filepath.Join(name, ".env"), "")
+	writeFile(filepath.Join(name, ".env"), envContent)
 	writeFile(filepath.Join(name, ".air.toml"), airTomlContent)
 	writeFile(filepath.Join(name, ".gitignore"), gitignoreContent)
 
-	fmt.Printf("✅ Project '%s' created successfully!\n", name)
+	fmt.Printf("✅ Project '%s' created successfully with %s DB config!\n", name, dbType)
+}
+
+func generateEnvContent(dbType string) string {
+	switch dbType {
+	case "PostgreSQL":
+		return "DB_TYPE=postgres\nDB_HOST=localhost\nDB_PORT=5432\nDB_USER=postgres\nDB_PASSWORD=secret\nDB_NAME=mydb"
+	case "MySQL":
+		return "DB_TYPE=mysql\nDB_HOST=localhost\nDB_PORT=3306\nDB_USER=root\nDB_PASSWORD=secret\nDB_NAME=mydb"
+	case "SQLite":
+		return "DB_TYPE'sqlite\nDB_PATH=db.sqlite3"
+	case "MongoDB":
+		return "DB_TYPE=mongodb\nDB_URI=mongodb://localhost:27017\nDB_NAME=mydb"
+	default:
+		return ""
+	}
 }
 
 var gitignoreContent = `
