@@ -13,17 +13,6 @@ var newCmd = &cobra.Command{
 	Use:   "new project [name]",
 	Short: "Create a new snail backend project",
 	Args:  cobra.ExactArgs(2),
-	// V.1
-	// Run: func(cmd *cobra.Command, args []string) {
-	// 	if args[0] != "project" {
-	// 		fmt.Println("❌ Invalid command. Usage: snail new project <name>")
-	// 		return
-	// 	}
-	// 	name := args[1]
-	// 	createProject(name)
-	// },
-
-	// V.2
 	Run: func(cmd *cobra.Command, args []string) {
 		entity, name := args[0], args[1]
 
