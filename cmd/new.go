@@ -72,6 +72,7 @@ func createProject(name string) {
 	writeProjectTemplate(filepath.Join(name, "internal/logger/logger.go"), loggerTemplate, name)
 	writeProjectTemplate(filepath.Join(name, "internal/server/server.go"), serverTemplate, name)
 	writeFile(filepath.Join(name, ".env"), envContent)
+	writeFile(filepath.Join(name, ".env.example"), envExampleContent)
 	writeFile(filepath.Join(name, ".air.toml"), airTomlContent)
 	writeFile(filepath.Join(name, ".gitignore"), gitignoreContent)
 
@@ -212,4 +213,15 @@ func NewServer(log *logrus.Logger) *fiber.App {
 
 	return app
 }
+`
+
+var envExampleContent = `
+APP_PORT=8080
+
+# Database connection
+DB_HOST=localhost
+DB_PORT=5432
+DB_USER=postgres
+DB_PASSWORD=your-password
+DB_NAME=your-db
 `
